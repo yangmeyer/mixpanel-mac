@@ -393,6 +393,21 @@ static Mixpanel *sharedInstance = nil;
     return self;
 }
 
+#pragma mark - Identity
+
+- (void)createAlias:(NSString *)alias forDistinctID:(NSString *)distinctID
+{
+	if (!alias || [alias length] == 0) {
+		NSLog(@"%@ create alias called with empty alias: %@", self, alias);
+		return;
+	}
+	if (!distinctID || [distinctID length] == 0) {
+		NSLog(@"%@ create alias called with empty distinct id: %@", self, distinctID);
+		return;
+	}
+	[self track:@"$create_alias" properties:@{@"distinct_id": distinctID, @"alias": alias}];
+}
+
 #pragma mark * Tracking
 
 - (NSString *)defaultDistinctId
@@ -1169,6 +1184,36 @@ static Mixpanel *sharedInstance = nil;
         return;
     }
     [self increment:[NSDictionary dictionaryWithObject:amount forKey:property]];
+}
+
+
+- (void)trackCharge:(NSNumber *)amount
+{
+	[self trackCharge:amount withProperties:nil];
+}
+
+- (void)trackCharge:(NSNumber *)amount withProperties:(NSDictionary *)properties
+{
+	NSAssert(amount != nil, @"amount must not be nil");
+	if (amount != nil) {
+		NSMutableDictionary *txn = [NSMutableDictionary dictionaryWithObjectsAndKeys:amount, @"$amount", [NSDate date], @"$time", nil];
+		if (properties) {
+			[txn addEntriesFromDictionary:properties];
+		}
+		[self append:@{@"$transactions": txn}];
+	}
+}
+
+- (void)clearCharges
+{
+	[self set:@{@"$transactions": @[]}];
+}
+
+- (void)append:(NSDictionary *)properties
+{
+	NSAssert(properties != nil, @"properties must not be nil");
+	[Mixpanel assertPropertyTypes:properties];
+	[self addPeopleRecordToQueueWithAction:@"$append" andProperties:properties];
 }
 
 - (void)deleteUser

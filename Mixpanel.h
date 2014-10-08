@@ -239,6 +239,8 @@
  */
 - (id)initWithToken:(NSString *)apiToken andFlushInterval:(NSUInteger)flushInterval;
 
+- (void)createAlias:(NSString *)alias forDistinctID:(NSString *)distinctID;
+
 /*!
  @method
  
@@ -523,6 +525,9 @@
  @param amount          amount to increment by
  */
 - (void)increment:(NSString *)property by:(NSNumber *)amount;
+
+- (void)trackCharge:(NSNumber *)amount;
+- (void)trackCharge:(NSNumber *)amount withProperties:(NSDictionary *)properties;
 
 /*!
  @method
